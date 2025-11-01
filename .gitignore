@@ -2,3 +2,30 @@
 .env
 .env.*
 .env_medorax
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.env
+.venv/
+venv/
+env*/
+.env.*
+
+# FastAPI / Uvicorn
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Node (se tiver front)
+node_modules/
+dist/
+build/
+
+# SO
+.DS_Store
+Thumbs.db
