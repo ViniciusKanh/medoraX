@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MedoraX — Análise Clínica Inteligente</title>
+  <meta name="description" content="MedoraX — IA educacional para análise de imagens médicas e pesquisa clínica com Google CSE e Gemini." />
+  <link rel="stylesheet" href="styles.css">
+  <!-- Importação da fonte Orbitron para o aspecto futurista -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    /* Pequenas assistências de estilo local para garantir comportamento mínimo */
+    .hidden { display: none !important; }
+    #splash-screen{
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(29,78,216,0.04));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      transition: opacity .8s ease, visibility .8s;
+    }
+    #splash-screen .splash-card{
+      text-align:center;
+      padding:24px;
+      border-radius:12px;
+      backdrop-filter: blur(4px);
+    }
+    .progress-spinner{
+      display:inline-block;
+      width:18px;
+      height:18px;
+      border:3px solid rgba(0,0,0,0.1);
+      border-top-color: rgba(0,0,0,0.25);
+      border-radius:50%;
+      animation: spin 1s linear infinite;
+      vertical-align:middle;
+      margin-right:8px;
+    }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body>
+  <!-- SPLASH SCREEN ANIMADA -->
+  <div id="splash-screen">
+    <div class="splash-card">
+      <img src="medorax_logo.png" alt="MedoraX" style="width:64px;height:64px;display:block;margin:0 auto 8px;" />
+      <div style="font-weight:700">MedoraX</div>
+      <div style="font-size:13px;color:#444;margin-top:6px;">Carregando interface…</div>
+      <div style="margin-top:12px;"><span class="progress-spinner"></span> Inicializando</div>
+    </div>
+  </div>
+
+  <!-- FUNDO ANIMADO (Imagem com animação CSS) -->
+  <div class="animated-background" aria-hidden="true"></div>
+
+  <!-- CABEÇALHO -->
+  <header>
+    <div class="container header-content">
+      <div class="logo-area">
+        <img id="header-logo" src="medorax_logo.png" alt="MedoraX Logo" class="logo-medorax header-logo" />
+        <div>
+          <h1 class="project-title">MedoraX</h1>
+          <p class="project-subtitle">Assistente Clínico Inteligente</p>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <a href="#about-section">Sobre</a>
+        <a href="#upload-section">Análise</a>
+        <a href="#search-section">Pesquisa</a>
+        <a href="#documentation-section">Documentação</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- SEÇÃO HERO / APRESENTAÇÃO -->
+    <section id="about-section" class="hero-section">
+      <div class="hero-text">
+        <h2>Análise Médica Inteligente: O Futuro da Clínica</h2>
+        <p class="lead-text">
+          O MedoraX é um sistema de pesquisa e educação que utiliza o poder da Inteligência Artificial, impulsionado pelo Google Gemini, para realizar a <strong>análise multimodal de imagens médicas</strong> e fornecer <strong>referências clínicas</strong> de alta relevância.
+        </p>
+        <a href="#upload-section" class="btn-primary">
+          Iniciar Análise Agora
+        </a>
+      </div>
+      <div class="hero-visual">
+        <div class="dna-pulse-animation" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO DE UPLOAD + RESULTADO -->
+    <section id="upload-section" class="main-card-grid">
+      <!-- Card Upload -->
+      <div class="card upload-card">
+        <h3 class="card-title">📤 Analisar Imagem Médica</h3>
+        <p class="card-subtitle">Envie uma imagem (PNG/JPG) para análise. O sistema irá processar e gerar um relatório explicável.</p>
+
+        <div id="dropzone" class="dropzone">
+          <input id="fileInput" type="file" accept="image/png, image/jpeg" class="hidden" />
+          <div class="dropzone-content">
+            <div class="icon-dna">🧬</div>
+            <p class="font-medium text-lg">Arraste e solte o arquivo aqui</p>
+            <p class="text-sm text-gray-500">ou <span id="pickFile" class="text-primary hover:underline cursor-pointer">clique para selecionar</span></p>
+          </div>
+        </div>
+
+        <div id="previewContainer" class="hidden preview-container">
+          <div class="preview-header">
+            <span class="text-sm text-gray-400 font-medium">Pré-visualização</span>
+            <button id="clearBtn" class="clear-btn">Limpar</button>
+          </div>
+          <div class="preview-image-wrapper">
+            <img id="previewImg" alt="Pré-visualização" class="preview-img" />
+          </div>
+        </div>
+
+        <button id="btnAnalyze" class="btn-primary w-full">▶️ Analisar Imagem</button>
+
+        <div id="progress" class="hidden progress-status" style="margin-top:12px;">
+          <div class="progress-spinner" aria-hidden="true"></div>
+          Processando imagem com Gemini...
+        </div>
+      </div>
+
+      <!-- Card Resultado -->
+      <div class="card result-card">
+        <div class="result-header">
+          <h3 class="card-title">🧠 Resultado da Análise</h3>
+          <span class="tag">EDUCACIONAL</span>
+        </div>
+
+        <div id="resultContainer" class="hidden result-content">
+          <div class="result-summary-grid">
+            <div class="result-item">
+              <p class="result-label">Modalidade</p>
+              <p class="result-value" id="modality">—</p>
+            </div>
+            <div class="result-item">
+              <p class="result-label">Confiança</p>
+              <p class="result-value" id="confidence">—</p>
+            </div>
+          </div>
+
+          <div class="result-section">
+            <h4 class="result-section-title">Achados Clínicos</h4>
+            <ul id="findings" class="result-list"></ul>
+          </div>
+
+          <div class="result-section">
+            <h4 class="result-section-title">Diagnóstico Diferencial (DDx)</h4>
+            <ul id="differential" class="result-list"></ul>
+          </div>
+
+          <div class="result-section">
+            <h4 class="result-section-title">Relatório Gerado</h4>
+            <p id="report" class="report-text"></p>
+          </div>
+
+          <div class="result-section">
+            <h4 class="result-section-title">Referências (Tavily/CSE)</h4>
+            <ul id="refs" class="result-list-refs"></ul>
+          </div>
+        </div>
+
+        <div id="emptyState" class="empty-state">
+          Aguardando o envio de uma imagem para análise.
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO DE PESQUISA CLÍNICA -->
+    <section id="search-section" class="card search-card">
+      <h3 class="card-title">🔍 Pesquisa Clínica Avançada</h3>
+      <p class="card-subtitle">Utilize o Google CSE e a Tavily API para buscar artigos e referências em fontes médicas confiáveis.</p>
+
+      <div id="search-form" class="search-form">
+        <input id="q" type="text" placeholder="Ex: pneumonia guidelines 2024" class="search-input" />
+        <input id="site" type="text" placeholder="Domínio (opcional, ex: radiopaedia.org)" class="search-input site-input" />
+        <input id="num" type="number" min="1" max="10" value="5" placeholder="Qtd" class="search-input num-input" />
+        <button id="btnSearch" class="btn-primary search-button">Pesquisar</button>
+      </div>
+
+      <div id="searchResults" class="search-results"></div>
+    </section>
+
+    <!-- SEÇÃO DE DOCUMENTAÇÃO TÉCNICA -->
+    <section id="documentation-section" class="card documentation-card">
+      <h2 class="card-title">Documentação Técnica do Projeto</h2>
+      <div id="doc-content" class="doc-content">
+        <p>Carregando documentação…</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- RODAPÉ -->
+  <footer>
+    <div class="container footer-content">
+      <p class="footer-credits">
+        Desenvolvido por <a href="https://github.com/ViniciusKhan" target="_blank">Vinicius de Souza Santos</a> | Mestrando em Ciência da Computação.
+      </p>
+      <p class="footer-disclaimer">
+        © 2025 MedoraX — Protótipo educacional. Não utilizar para diagnóstico clínico.
+      </p>
+    </div>
+  </footer>
+
+  <!-- SCRIPT CORRIGIDO E AUTO-CONTIDO -->
+  <script>
+    // ============================================================
+    // 🔧 Funções auxiliares
+    // ============================================================
+    function $(id) { return document.getElementById(id); }
+
+    // Função para converter JSON do Notebook em HTML (aprimorada para Markdown)
+    function notebookToHtml(notebookJson) {
+        let html = '';
+        let notebook;
+        try {
+            notebook = JSON.parse(notebookJson);
+        } catch (e) {
+            return `<p class="error-message">Erro ao processar o arquivo do Notebook: ${e.message}</p>`;
+        }
+
+        if (!Array.isArray(notebook.cells)) return `<p class="error-message">Notebook inválido</p>`;
+
+        notebook.cells.forEach(cell => {
+            if (cell.cell_type === 'markdown') {
+                const source = Array.isArray(cell.source) ? cell.source.join('') : (cell.source || '');
+                // Conversão básica de Markdown para HTML
+                let content = source
+                    .replace(/^#\s*(.*)$/gm, '<h3>$1</h3>') // H3 para títulos de seção
+                    .replace(/^##\s*(.*)$/gm, '<h4>$1</h4>') // H4 para subtítulos
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Negrito
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>') // Itálico
+                    .replace(/^- (.*)$/gm, '<li>$1</li>') // Lista
+                    .replace(/^(<li>.*<\/li>)$/gms, '<ul>$1</ul>') // Envolve a lista
+                    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'); // Links
+
+                html += `<div class="doc-content-item">${content}</div>`;
+            } else if (cell.cell_type === 'code') {
+                const source = Array.isArray(cell.source) ? cell.source.join('') : (cell.source || '');
+                // Escape HTML entities to display code safely
+                const escaped = source
+                  .replace(/&/g, '&amp;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;');
+                html += `<div class="doc-content-item"><h4>Código Fonte</h4><pre><code>${escaped}</code></pre></div>`;
+            }
+        });
+
+        return html;
+    }
+
+    // ============================================================
+    // 📁 Seletores principais
+    // ============================================================
+    const fileInput = $("fileInput");
+    const dropzone = $("dropzone");
+    const pickFile = $("pickFile");
+    const previewContainer = $("previewContainer");
+    const previewImg = $("previewImg");
+    const clearBtn = $("clearBtn");
+    const btnAnalyze = $("btnAnalyze");
+    const progress = $("progress");
+    const resultContainer = $("resultContainer");
+    const emptyState = $("emptyState");
+    const docContent = $("doc-content");
+    const splashScreen = $("splash-screen");
+
+    // Campos de saída
+    const modality = $("modality");
+    const confidence = $("confidence");
+    const findingsList = $("findings");
+    const diffList = $("differential");
+    const report = $("report");
+    const refs = $("refs");
+
+    // Campos de pesquisa
+    const btnSearch = $("btnSearch");
+    const q = $("q");
+    const site = $("site");
+    const num = $("num");
+    const searchResults = $("searchResults");
+
+    // ============================================================
+    // 🎯 Funções auxiliares
+    // ============================================================
+
+    function getBackendBase() {
+      return "https://viniciuskhan-backend-medorax.hf.space";
+    }
+
+    function showPreview() {
+      const file = fileInput && fileInput.files && fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (previewImg) {
+          previewImg.src = e.target.result;
+          previewContainer && previewContainer.classList.remove("hidden");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateResultDisplay(data) {
+        // Limpa listas
+        findingsList && (findingsList.innerHTML = "");
+        diffList && (diffList.innerHTML = "");
+        refs && (refs.innerHTML = "");
+
+        // Exibe resultados com checagens defensivas
+        if (modality) modality.textContent = (data && data.modality) || "Não Identificado";
+        if (confidence) confidence.textContent =
+          data && data.confidence_modality !== undefined
+            ? (data.confidence_modality * 100).toFixed(1) + "%"
+            : "N/A";
+
+        if (data && data.findings && data.findings.length > 0) {
+            findingsList.innerHTML = data.findings
+                .map((f) => `<li><strong>${f.name}</strong>: ${f.evidence || "Sem evidência detalhada"}</li>`)
+                .join("");
+        } else {
+            findingsList && (findingsList.innerHTML = "<li>Nenhum achado clínico relevante identificado.</li>");
+        }
+
+        if (data && data.differential && data.differential.length > 0) {
+            diffList.innerHTML = data.differential
+                .map(
+                    (d) =>
+                        `<li>${d.label} — <span class="text-gray-500">${(
+                            (d.confidence || 0) * 100
+                        ).toFixed(0)}%</span></li>`
+                )
+                .join("");
+        } else {
+            diffList && (diffList.innerHTML = "<li>Nenhum diagnóstico diferencial sugerido.</li>");
+        }
+
+        if (report) report.textContent = (data && data.report_text) || "Relatório não gerado.";
+
+        if (data && data.references && data.references.length > 0) {
+            refs.innerHTML = data.references
+                .map((r) => `<li><a href="${r.url}" target="_blank" rel="noopener noreferrer">${r.title}</a></li>`)
+                .join("");
+        } else {
+            refs && (refs.innerHTML = "<li>Nenhuma referência encontrada.</li>");
+        }
+
+        emptyState && emptyState.classList.add("hidden");
+        resultContainer && resultContainer.classList.remove("hidden");
+        resultContainer && resultContainer.scrollIntoView({ behavior: "smooth" });
+    }
+
+    // ============================================================
+    // 🚀 Inicialização e Efeitos Visuais
+    // ============================================================
+
+    function hideSplashScreen() {
+        if (!splashScreen) return;
+        setTimeout(() => {
+            splashScreen.style.opacity = '0';
+            setTimeout(() => {
+                splashScreen.style.visibility = 'hidden';
+                splashScreen.style.display = 'none';
+            }, 900);
+        }, 900); // tempo reduzido para demo (adicione mais se quiser)
+    }
+
+    // ============================================================
+    // 📤 Drag & Drop + upload
+    // ============================================================
+
+    if (dropzone) {
+      dropzone.addEventListener("click", () => fileInput && fileInput.click());
+      dropzone.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          dropzone.classList.add('dropzone-active');
+      });
+      dropzone.addEventListener("dragleave", () => {
+          dropzone.classList.remove('dropzone-active');
+      });
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dropzone-active');
+        try {
+          // preencher via DataTransfer: compatível na maioria dos navegadores modernos
+          if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length && fileInput) {
+            fileInput.files = e.dataTransfer.files;
+            showPreview();
+          }
+        } catch (err) {
+          console.warn("Não foi possível atribuir arquivos programaticamente.", err);
+        }
+      });
+    }
+
+    if (typeof pickFile !== 'undefined' && pickFile && fileInput) {
+      pickFile.addEventListener("click", () => fileInput.click());
+    }
+    if (fileInput) fileInput.addEventListener("change", showPreview);
+
+    if (clearBtn) clearBtn.addEventListener("click", () => {
+      if (fileInput) fileInput.value = "";
+      previewContainer && previewContainer.classList.add("hidden");
+      resultContainer && resultContainer.classList.add("hidden");
+      emptyState && emptyState.classList.remove("hidden");
+      searchResults && (searchResults.innerHTML = "");
+    });
+
+    // ============================================================
+    // 🧠 Análise de imagem
+    // ============================================================
+    if (btnAnalyze) {
+      btnAnalyze.addEventListener("click", async () => {
+        const file = fileInput && fileInput.files && fileInput.files[0];
+        if (!file) return alert("Selecione uma imagem primeiro.");
+
+        progress && progress.classList.remove("hidden");
+        btnAnalyze.disabled = true;
+        btnAnalyze.textContent = "⏳ Analisando...";
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        try {
+          const backendBase = getBackendBase();
+          const res = await fetch(`${backendBase}/predict`, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Erro ${res.status}: ${text}`);
+          }
+
+          const data = await res.json();
+          updateResultDisplay(data);
+
+        } catch (err) {
+          alert("❌ Erro ao processar imagem: " + err.message);
+          console.error(err);
+        } finally {
+          progress && progress.classList.add("hidden");
+          btnAnalyze.disabled = false;
+          btnAnalyze.textContent = "▶️ Analisar Imagem";
+        }
+      });
+    }
+
+    // ============================================================
+    // 🔍 Pesquisa clínica
+    // ============================================================
+    if (btnSearch) {
+      btnSearch.addEventListener("click", async () => {
+        const query = q && q.value ? q.value.trim() : "";
+        const siteVal = site && site.value ? site.value.trim() : "";
+        const numVal = num && num.value ? num.value : 5;
+
+        if (!query) return alert("Digite um termo para pesquisar.");
+
+        if (searchResults) searchResults.innerHTML = "<p class='progress-status'>🔎 Buscando...</p>";
+
+        try {
+          const backendBase = getBackendBase();
+          const url = new URL(`${backendBase}/research`);
+          url.searchParams.append("q", query);
+          url.searchParams.append("num", numVal);
+          if (siteVal) url.searchParams.append("site", siteVal);
+
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`Erro ${res.status}`);
+
+          const data = await res.json();
+
+          if (data.items && data.items.length > 0) {
+            searchResults.innerHTML = data.items
+              .map(
+                (i) =>
+                  `<div class="result-item"><a href="${i.url}" target="_blank" rel="noopener noreferrer">${i.title}</a><p>${i.url}</p></div>`
+              )
+              .join("");
+          } else {
+            searchResults.innerHTML = "<p class='empty-state'>Nenhum resultado encontrado.</p>";
+          }
+        } catch (e) {
+          if (searchResults) searchResults.innerHTML = `<p class='error-message'>Erro na pesquisa: ${e.message}</p>`;
+          console.error(e);
+        }
+      });
+    }
+
+    // ============================================================
+    // 📝 Injeção da Documentação
+    // ============================================================
+
+    // Notebook definido como objeto (evita problemas com backticks)
+    const notebookObj = {
+      nbformat: 4,
+      nbformat_minor: 0,
+      metadata: {
+        kernelspec: { name: "python3", display_name: "Python 3" },
+        language_info: { name: "python" }
+      },
+      cells: [
+        {
+          cell_type: "markdown",
+          source: [
+            "# MedoraX: Sistema de Análise Médica Inteligente\n",
+            "\n",
+            "## Visão Geral do Projeto\n",
+            "\n",
+            "O MedoraX é um projeto de pesquisa e desenvolvimento em Inteligência Artificial aplicada à saúde, idealizado por **Vinicius de Souza Santos**, estudante de Mestrado em Ciências da Computação. O objetivo principal é criar um assistente educacional e de pesquisa capaz de realizar a **análise multimodal de imagens médicas** e fornecer **referências clínicas** relevantes de forma rápida e explicável.\n",
+            "\n",
+            "O sistema demonstra o potencial da IA na área da saúde, integrando modelos de linguagem avançados com ferramentas de busca especializadas para auxiliar estudantes, pesquisadores e profissionais no processo de interpretação e estudo de casos clínicos.\n",
+            "\n",
+            "## Arquitetura e Tecnologias\n",
+            "\n",
+            "O backend do MedoraX é uma API robusta e modular, hospedada no Hugging Face Spaces, que orquestra diferentes serviços para entregar a análise completa.\n",
+            "\n",
+            "### 1. Análise Multimodal (Gemini)\n",
+            "\n",
+            "O coração do sistema é o modelo **Google Gemini**, utilizado para a análise da imagem médica e a geração do relatório estruturado. O Gemini é capaz de processar a imagem (PNG/JPG) e o prompt de instrução para extrair informações cruciais como:\n",
+            "\n",
+            "- **Tipo de Imagem/Modalidade:** Raio-X, Tomografia, Ressonância, etc.\n",
+            "- **Achados Clínicos:** Descrição detalhada das anomalias observadas.\n",
+            "- **Diagnóstico Diferencial (DDx):** Lista de possíveis diagnósticos com base nos achados.\n",
+            "- **Relatório Explicativo:** Texto coeso e estruturado para o usuário.\n",
+            "\n",
+            "### 2. Pesquisa Clínica Avançada (Tavily e Google CSE)\n",
+            "\n",
+            "Para garantir a relevância e a confiabilidade das informações, o MedoraX utiliza ferramentas de busca especializadas:\n",
+            "\n",
+            "- **Tavily API:** Utilizada para buscar artigos e referências em fontes médicas e científicas de alta qualidade.\n",
+            "- **Google Custom Search Engine (CSE):** Permite a busca em domínios específicos (ex: radiopaedia.org, nejm.org), garantindo que as referências sejam de fontes confiáveis e especializadas.\n",
+            "\n",
+            "Essas ferramentas são integradas ao fluxo de análise para fornecer referências em tempo real, complementando o relatório gerado pelo Gemini.\n",
+            "\n",
+            "### 3. API Backend (Hugging Face Spaces)\n",
+            "\n",
+            "A API é implementada em Python, utilizando o framework **FastAPI** (ou similar, como Flask/Gradio) para criar dois endpoints principais:\n",
+            "\n",
+            "- `/predict`: Recebe a imagem e retorna o JSON estruturado da análise do Gemini.\n",
+            "- `/research`: Recebe o termo de busca e retorna os resultados da pesquisa clínica (Tavily/CSE).\n",
+            "\n",
+            "O link da API é: https://huggingface.co/spaces/ViniciusKhan/backend-medoraX\n",
+            "\n",
+            "## Código de Exemplo (Estrutura da API)\n",
+            "\n",
+            "Abaixo, um trecho simplificado do código que demonstra a integração com o Gemini:\n",
+            "\n",
+            "```python\nfrom google import genai\nfrom google.genai import types\nfrom PIL import Image\nimport io\n\nclient = genai.Client()\n\ndef analyze_image_with_gemini(image_bytes):\n    img = Image.open(io.BytesIO(image_bytes))\n    prompt = (\n        \"Você é um assistente de análise médica. Analise a imagem fornecida e gere um JSON estruturado com os seguintes campos: 'modality', 'confidence_modality', 'findings' (lista de objetos com 'name' e 'evidence'), 'differential' (lista de objetos com 'label' e 'confidence'), e 'report_text'.\"\n    )\n    response = client.models.generate_content(\n        model='gemini-2.5-flash',\n        contents=[prompt, img],\n        config=types.GenerateContentConfig(\n            response_mime_type='application/json'\n        )\n    )\n    return response.text\n```\n",
+            "\n",
+            "## Contribuições e Futuro\n",
+            "\n",
+            "O MedoraX é um projeto de código aberto focado em pesquisa. Contribuições são bem-vindas, especialmente em:\n",
+            "\n",
+            "- **Otimização de Prompts:** Melhorar a precisão e a estrutura dos relatórios gerados pelo Gemini.\n",
+            "- **Integração de Novas APIs:** Adicionar outras fontes de dados e ferramentas de pesquisa.\n",
+            "- **Frontend:** Melhorias contínuas na interface do usuário para uma experiência mais fluida e intuitiva (como esta que está sendo implementada!).\n",
+            "\n",
+            "Para mais detalhes sobre o desenvolvimento e a pesquisa, consulte o repositório completo do projeto.\n"
+          ]
+        }
+      ]
+    };
+
+    async function loadDocumentation() {
+        if (!docContent) return;
+        try {
+          docContent.innerHTML = notebookToHtml(JSON.stringify(notebookObj));
+        } catch (e) {
+          docContent.innerHTML = `<p class="error-message">Erro ao carregar documentação: ${e.message}</p>`;
+          console.error(e);
+        }
+    }
+
+    // ============================================================
+    // 🏁 Início
+    // ============================================================
+    document.addEventListener("DOMContentLoaded", () => {
+        loadDocumentation();
+        hideSplashScreen();
+
+        // Navegação suave
+        document.querySelectorAll('.main-nav a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    });
+  </script>
+</body>
+</html>
