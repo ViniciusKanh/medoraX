@@ -1,7 +1,8 @@
 # environment
 .env
 .env.*
-.env_medorax
+.env_medoraX
+env_medoraX
 # Python
 __pycache__/
 *.py[cod]
