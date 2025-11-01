@@ -27,6 +27,19 @@ node_modules/
 dist/
 build/
 
-# SO
+# Infra
+backend-medoraX/
+env_medorax/
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# Node/Front
+node_modules/
+dist/
+build/
+
+# SO/IDE
 .DS_Store
-Thumbs.db
+*.code-workspace
+
